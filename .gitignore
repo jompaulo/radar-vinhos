@@ -1,0 +1,11 @@
+# Ignora credenciais locais e caches Python
+.env
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+
+# Mantém o banco SQLite versionado para persistência no GitHub Actions
+!radar_vinhos.db
