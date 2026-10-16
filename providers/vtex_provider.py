@@ -91,6 +91,7 @@ class VTEXProvider(BaseWineProvider):
                         if preco_tabela < preco_atual:
                             preco_tabela = preco_atual
 
+                        link_final = config.converter_link_afiliado(link, store_name)
                         if passes_filters(item_name, preco_atual):
                             produtos_filtrados.append({
                                 "sku": sku,
@@ -100,7 +101,7 @@ class VTEXProvider(BaseWineProvider):
                                 "preco_tabela": round(preco_tabela, 2),
                                 "preco_atual": round(preco_atual, 2),
                                 "estoque": estoque,
-                                "link": link,
+                                "link": link_final,
                             })
                             break
             except Exception as exc:

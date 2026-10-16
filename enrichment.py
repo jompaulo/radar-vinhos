@@ -22,7 +22,7 @@ def _fallback_card(item: Dict[str, Any]) -> str:
     preco_ml = float(item.get("preco_mercado_ml", preco_ref))
     desconto_ml_pct = float(item.get("desconto_vs_ml", 0.0)) * 100
     estoque = int(item.get("estoque", 0))
-    link = item.get("link", "#")
+    link = config.converter_link_afiliado(str(item.get("link", "#")), str(loja))
 
     _, selo_default = classificar_tier(preco_atual)
     selo_tier = item.get("selo_tier") or selo_default
@@ -60,7 +60,8 @@ def gerar_card_telegram(item: Dict[str, Any]) -> str:
     """
     Utiliza a API do Gemini (`gemini-2.5-flash`) para gerar os cards em Markdown do Telegram,
     adicionando os selos visuais automáticos (🟢 [RADAR DIA A DIA], 🟡 [RADAR RESERVA] ou 🔴 [RADAR ALTA GAMA]),
-    os dados do Comparador do Mercado Livre e a assinatura oficial no rodapé.
+    os dados do Comparador do Mercado Livre, o Deep Link de afiliado (quando aplicável)
+    e a assinatura oficial no rodapé.
     """
     nome = item.get("nome", "")
     marca = item.get("marca", "")
@@ -71,7 +72,8 @@ def gerar_card_telegram(item: Dict[str, Any]) -> str:
     preco_ml = float(item.get("preco_mercado_ml", preco_ref))
     desconto_ml_pct = float(item.get("desconto_vs_ml", 0.0)) * 100
     estoque = int(item.get("estoque", 0))
-    link = item.get("link", "")
+    link = config.converter_link_afiliado(str(item.get("link", "")), str(loja))
+    item["link"] = link
 
     _, selo_default = classificar_tier(preco_atual)
     selo_tier = item.get("selo_tier") or selo_default
@@ -92,7 +94,7 @@ Gere um card conciso e elegante em formato Markdown para Telegram sobre a seguin
 - Preço Agora: R$ {preco_atual:.2f} (-{desconto_pct:.1f}% de queda)
 - Preço Médio no Mercado Livre (Top 3 ativos): R$ {preco_ml:.2f} (-{desconto_ml_pct:.1f}% abaixo do ML)
 - Estoque disponível: {estoque} unidades
-- Link: {link}
+- Link de Compra Obrigatório (NÃO altere nem remova parâmetros da URL): {link}
 - Assinatura Obrigatória no Rodapé: {config.ASSINATURA_OFICIAL}
 
 O card DEVE conter exatamente:
@@ -102,7 +104,7 @@ O card DEVE conter exatamente:
 4. Por que vale a pena (exatamente 1 frase técnica direta sobre o produtor/corte)
 5. Preço Médio vs. Preço Agora (mostrando o valor em R$ e a % de queda: -{desconto_pct:.1f}%)
 6. Comparador Mercado Livre (mostrando a média no ML de R$ {preco_ml:.2f} e a assimetria de -{desconto_ml_pct:.1f}%)
-7. Alerta de Estoque ({estoque} unidades) e Link clicável
+7. Alerta de Estoque ({estoque} unidades) e Link clicável usando EXATAMENTE a URL fornecida: {link}
 8. No rodapé, exatamente a linha: {config.ASSINATURA_OFICIAL}
 """.strip()
 
@@ -135,6 +137,8 @@ O card DEVE conter exatamente:
             texto = response.text.strip()
             if selo_tier not in texto:
                 texto = f"{selo_tier}\n{texto}"
+            if link and link not in texto:
+                texto = f"{texto}\n🛒 [Comprar agora na {loja}]({link})"
             if config.ASSINATURA_OFICIAL not in texto:
                 texto = f"{texto}\n\n{config.ASSINATURA_OFICIAL}"
             return texto
