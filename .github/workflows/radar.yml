@@ -2,7 +2,7 @@ name: Radar Vinhos - Monitor de Anomalias
 
 on:
   schedule:
-    - cron: '0 * * * *'
+    - cron: '0 */2 * * *'
   workflow_dispatch:
 
 permissions:
